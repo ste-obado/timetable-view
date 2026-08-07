@@ -1,0 +1,13 @@
+
+#ignore .env file 
+.env
+.alembic.ini
+.vscode/
+.idea/
+
+#ignore venv folder
+venv/
+
+#ignore files with certain extention
+*.pyc
+*.log

@@ -1,0 +1,1 @@
+#admin adds room name and capacity to the database
