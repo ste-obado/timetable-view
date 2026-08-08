@@ -1,5 +1,5 @@
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends,HTTPException
 from protection import get_current_user, OAuth_Schema, blacklist_token
 from models import User
 from database import get_db
@@ -29,6 +29,10 @@ def logout(token: str = Depends(get_current_user)):
 @router.delete("/account_deletion")
 def del_account(token:str=Depends(OAuth_Schema),
                 db:Session=(Depends(get_db)),user:User=Depends(get_current_user)):
+
+    if user.role != "admin":
+        raise HTTPException(status_code=403,detail="Only admin can delete account")
+
     del_user=user
     blacklist_token(token)
     db.delete(del_user)

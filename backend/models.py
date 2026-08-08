@@ -13,8 +13,8 @@ class User(Base):
      name=Column(String(200),nullable=False)
      email=Column(String(200),nullable=False)
      password=Column(String(200),nullable=False)
-     role=Column(Enum("admin", "user","lecturer", name="user_roles"),
-                 default="user",nullable=False)
+     role=Column(Enum("admin", "Student","lecturer", name="user_roles"),
+                 default="Student",nullable=False)
      created_at=Column(TIMESTAMP,server_default=func.now())
 
      Enrol=relationship("enrollments",back_populates="user",cascade="all, delete-orphan")

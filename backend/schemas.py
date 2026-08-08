@@ -5,13 +5,13 @@ from  typing import Optional
 class register(BaseModel):
     name:str
     email:EmailStr
-    role:str="user"
+    role:str="Student"
     password:str
 
     @field_validator("role")
     def role_vallidator(cls,role):
-           if role not in [ "admin","user"] :              
-                raise ValueError("enter role as admin or user")
+           if role not in [ "admin","Student","lecturer"] :              
+                raise ValueError("enter role as admin, Student or lecturer")
            return role
 
 
@@ -26,4 +26,23 @@ class register(BaseModel):
         if self.password != self.confirm_password:
             raise ValueError("Passwords do not match")
         return self
-    
+
+class course(BaseModel):
+     course_code:str
+     course_name:str
+     description:str
+
+class CourseUpdate(BaseModel):
+    Code: Optional[str] = None
+    name: Optional[str] = None
+    Description: Optional[str] = None
+
+class RoomS(BaseModel):
+    room_name:str
+    capacity:int
+    room_code:str
+
+class RoomUpdate(BaseModel):
+     room_name: Optional[str] = None
+     capacity: Optional[int] = None
+     room_code: Optional[int] = None
