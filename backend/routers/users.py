@@ -1,6 +1,7 @@
 
 from fastapi import APIRouter, Depends,HTTPException
 from protection import get_current_user, OAuth_Schema, blacklist_token
+from schemas import updateprofile
 from models import User
 from database import get_db
 from sqlalchemy.orm import Session
@@ -18,6 +19,19 @@ def get_profile(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
 
 
 #update user update profile
+@router.patch("/update_profile")
+def update_course( user2:updateprofile, user:User = Depends(get_current_user),
+                  db:Session = Depends(get_db)):
+    #get user
+    user = db.query(User).filter(User.id == user.id ).first()
+    if not user:
+        raise HTTPException(status_code=404,detail="user not found")
+    else:
+     db.commit()
+     db.refresh(user2)       
+     return {"message":"profile updated",'PROFILE':user2}
+
+
 #accoutn log out
 @router.post("/logout")
 def logout(token: str = Depends(get_current_user)):

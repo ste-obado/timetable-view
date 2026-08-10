@@ -4,7 +4,6 @@ from models import Course,User,Enrollment
 from protection import get_current_user
 from schemas import course,CourseUpdate
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
 from fastapi import  HTTPException,Depends,status,APIRouter
 
 router=APIRouter( prefix="/courses",tags=["Courses"])
@@ -24,7 +23,7 @@ def enroll_course(enroll:course,db:Session=Depends(get_db),user:User=Depends(get
     existing_enrollment=db.query(Enrollment).filter(Enrollment.user_id==user.id,
                                                     Enrollment.course_id==existing_course.id).first()
     if existing_enrollment:
-            raise HTTPException(status_code=400,detail="User is already enrolled in this course")
+            raise HTTPException(status_code=400,detail="User is already enrolled in a course")
         
     course=Course(Code=enroll.course_code,name=enroll.course_name,Description=enroll.description)
     db.add(course)
@@ -36,6 +35,7 @@ def enroll_course(enroll:course,db:Session=Depends(get_db),user:User=Depends(get
 @router.get("/my_courses/{user.id}")
 def get_my_courses(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     enrolled_courses=db.query(Course).join(Enrollment).filter(Enrollment.user_id==user.id).all()
+    
     return {"courses": enrolled_courses}
 
 #only can get all courses

@@ -34,8 +34,8 @@ class Enrollment(Base):
     id=Column(Integer,primary_key=True)
     user_id=Column(String(200),ForeignKey("users.id"))
     course_id=Column(String(200),ForeignKey("courses.id"))
-    course=relationship("courses",back_populates="enrollments",cascade="all, delete-orphan")
-    user=relationship("user",back_populates="enrollments",cascade="all, delete-orphan")
+    course=relationship("courses",back_populates="enrollments")
+    user=relationship("user",back_populates="enrollments")
     
 
 class Course(Base):
@@ -46,7 +46,7 @@ class Course(Base):
     name=Column(String(100),nullable=False)
     Description=Column(String(100),nullable=False)
     created_at=Column(TIMESTAMP,server_default=func.now())
-    Enrol=relationship("enrollments",back_populates="courses",cascade="all, delete-orphan")
+    Enrol=relationship("enrollments",back_populates="courses")
     time_slot=relationship("time_slots",back_populates="courses",cascade="all, delete-orphan")
 
 
@@ -58,8 +58,8 @@ class Room(Base):
     id=Column(Integer,primary_key=True)
     room_name=Column(String(200),nullable=False)
     capacity=Column(Integer,nullable=False)
-    Code=Column(String(50),nullable=False)\
-    #table=relationship("time_slots",back_populates="roomS",cascade="all, delete-orphan")
+    Code=Column(String(50),nullable=False)
+    timetable=relationship("time_slots",back_populates="roomS",cascade="all, delete-orphan")
 
 
 
@@ -68,8 +68,6 @@ class TimeSlot(Base):
     __tablename__ ="time_slots"
 
     id=Column(Integer,primary_key=True)
-    name=Column(String(20))
-    comment=Column(String(200))
     course_id=Column(String(200),ForeignKey("courses.id"))
     lecturer_id=Column(String(200),ForeignKey("users.id"))
     room_id=Column(Integer,ForeignKey("rooms.id"))
@@ -78,9 +76,9 @@ class TimeSlot(Base):
     End_time=Column(String(20))
     Semester=Column(String(20))
     Academic_yr=Column(String(20))
-    created_by=Column(String(200),ForeignKey("user.id"))
+    created_by=Column(String(200))
     created_at=Column(TIMESTAMP,server_default=func.now())
-    updated_at=Column(TIMESTAMP,server_default=func.now())
+    updated_at=Column(DateTime,datetime(timezone.utcnow()))
     course=relationship("course",back_populates="time_slots",cascade="all, delete-orphan")
     user=relationship("user",back_populates="time_slots",cascade="all, delete-orphan")
     room=relationship("rooms",back_populates="time_slots",cascade="all, delete-orphan")

@@ -36,7 +36,7 @@ def get_rooms(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
 
 #only admin can update a course
 @router.patch("/update_room/{course_id}")
-def update_course(room_id:str, room:RoomUpdate, user:User = Depends(get_current_user),
+def update_course(room_id:str, room2:RoomUpdate, user:User = Depends(get_current_user),
                   db:Session = Depends(get_db)):
     room = db.query(Room).filter(Room.id == room_id).first()
     if not room:
@@ -45,5 +45,5 @@ def update_course(room_id:str, room:RoomUpdate, user:User = Depends(get_current_
           raise HTTPException(status_code=403,detail="Not authorized to update")
     else:
      db.commit()
-     db.refresh(room)       
-     return {"message":"room updated","ROOM":room}
+     db.refresh(room2)       
+     return {"message":"room updated","ROOM":room2}

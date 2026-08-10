@@ -27,6 +27,12 @@ class register(BaseModel):
             raise ValueError("Passwords do not match")
         return self
 
+
+class updateprofile(BaseModel):
+     name: Optional[str] = None
+     email:Optional[str] = None
+   
+
 class course(BaseModel):
      course_code:str
      course_name:str
@@ -46,3 +52,32 @@ class RoomUpdate(BaseModel):
      room_name: Optional[str] = None
      capacity: Optional[int] = None
      room_code: Optional[int] = None
+
+
+class timeslot(BaseModel):
+     course_id=int
+     Room_Code=str
+     lecture_id=str
+     Day=str
+     start_time=str
+     End_time=str
+     Semester=str
+     Academic_yr=str
+     created_by=str
+
+class timeupdate(BaseModel):
+     course_id=Optional[str] = None
+     Room_id=Optional[str] = None
+     lecture_id=Optional[str] = None
+     Day = Optional[str] = None
+     start_time = Optional[str] = None
+     End_time = Optional[str] = None
+     Semester  = Optional[str] = None
+     Academic_yr = Optional[str] = None
+     created_by =  Optional[str] = None
+
+
+     
+    
+
+
