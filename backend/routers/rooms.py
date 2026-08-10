@@ -5,7 +5,7 @@ from models import Room,User
 from protection import get_current_user
 from schemas import Rooms,RoomUpdate
 from sqlalchemy.orm import Session
-from fastapi.security import OAuth2PasswordRequestForm
+
 from fastapi import  HTTPException,Depends,status,APIRouter
 
 router=APIRouter( prefix="/room",tags=["Rooms"])
@@ -18,8 +18,8 @@ def add_room(room:Rooms,db:Session=Depends(get_db),user:User=Depends(get_current
     #check if room exists
     existing_room=db.query(Room).filter(Room.Code==room.room_code).first()
 
-    if existing_room is None:
-        raise HTTPException(status_code=404,detail="Room does not exist")
+    if existing_room :
+        raise HTTPException(status_code=404,detail="Room exist")
 
     room=Room(room_name=room.room_name,capacity=room.capacity,Code=room.room_code)
     db.add(room)
@@ -28,7 +28,7 @@ def add_room(room:Rooms,db:Session=Depends(get_db),user:User=Depends(get_current
     return {"message":"Room added"}
 
 #let user get room that exist
-@router.get("/available_rooms/{user.id}")
+@router.get("/available_rooms/{user_id}")
 def get_rooms(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     existing_rooms=db.query(Room).all()
     return {"courses":existing_rooms }
@@ -41,9 +41,11 @@ def update_course(room_id:str, room2:RoomUpdate, user:User = Depends(get_current
     room = db.query(Room).filter(Room.id == room_id).first()
     if not room:
         raise HTTPException(status_code=404,detail="room not found")
-    elif user.role!="admin":
+    if user.role!="admin":
           raise HTTPException(status_code=403,detail="Not authorized to update")
-    else:
-     db.commit()
-     db.refresh(room2)       
-     return {"message":"room updated","ROOM":room2}
+    room.room_name=room2.room_name
+    room.capacity=room2.capacity
+    room.room_code=room2.room_code
+    db.commit()
+    db.refresh(room)       
+    return {"message":"room updated","ROOM":room}

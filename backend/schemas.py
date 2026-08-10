@@ -7,6 +7,7 @@ class register(BaseModel):
     email:EmailStr
     role:str="Student"
     password:str
+    confirm_password:str
 
     @field_validator("role")
     def role_vallidator(cls,role):
@@ -55,26 +56,26 @@ class RoomUpdate(BaseModel):
 
 
 class timeslot(BaseModel):
-     course_id=int
-     Room_Code=str
-     lecture_id=str
-     Day=str
-     start_time=str
-     End_time=str
-     Semester=str
-     Academic_yr=str
-     created_by=str
+     course_id:int
+     Room_Code:str
+     lecture_id:str
+     Day:str
+     start_time:str
+     End_time:str
+     Semester:str
+     Academic_yr:str
+     created_by:str
 
 class timeupdate(BaseModel):
-     course_id=Optional[str] = None
-     Room_id=Optional[str] = None
-     lecture_id=Optional[str] = None
-     Day = Optional[str] = None
-     start_time = Optional[str] = None
-     End_time = Optional[str] = None
-     Semester  = Optional[str] = None
-     Academic_yr = Optional[str] = None
-     created_by =  Optional[str] = None
+     course_id:Optional[str] = None
+     Room_id:Optional[str] = None
+     lecture_id:Optional[str] = None
+     Day :Optional[str] = None
+     start_time : Optional[str] = None
+     End_time : Optional[str] = None
+     Semester  :Optional[str] = None
+     Academic_yr : Optional[str] = None
+     created_by :  Optional[str] = None
 
 
      

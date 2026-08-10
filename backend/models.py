@@ -7,7 +7,7 @@ from datetime import timezone,datetime
 
 
 class User(Base):
-     __tablename__ ="user"
+     __tablename__ ="users"
 
      id=Column(String(200),primary_key=True,default=lambda:str(uuid.uuid4()))
      name=Column(String(200),nullable=False)
@@ -17,9 +17,9 @@ class User(Base):
                  default="Student",nullable=False)
      created_at=Column(TIMESTAMP,server_default=func.now())
 
-     Enrol=relationship("enrollments",back_populates="user",cascade="all, delete-orphan")
-     timetable=relationship("time_slots",back_populates="user",cascade="all, delete-orphan")
-     notification=relationship("notifications",back_populates="user",cascade="all, delete-orphan")
+     Enrol=relationship("Enrollment",back_populates="user",cascade="all, delete-orphan")
+     timetable=relationship("TimeSlot",back_populates="user",cascade="all, delete-orphan")
+     notification=relationship("Notification",back_populates="user",cascade="all, delete-orphan")
    
 
      #Using checkcontarint function
@@ -33,9 +33,9 @@ class Enrollment(Base):
 
     id=Column(Integer,primary_key=True)
     user_id=Column(String(200),ForeignKey("users.id"))
-    course_id=Column(String(200),ForeignKey("courses.id"))
-    course=relationship("courses",back_populates="enrollments")
-    user=relationship("user",back_populates="enrollments")
+    course_id=Column(Integer,ForeignKey("courses.id"))
+    course=relationship("Course",back_populates="Enrol")
+    user=relationship("User",back_populates="Enrol")
     
 
 class Course(Base):
@@ -46,8 +46,8 @@ class Course(Base):
     name=Column(String(100),nullable=False)
     Description=Column(String(100),nullable=False)
     created_at=Column(TIMESTAMP,server_default=func.now())
-    Enrol=relationship("enrollments",back_populates="courses")
-    time_slot=relationship("time_slots",back_populates="courses",cascade="all, delete-orphan")
+    Enrol=relationship("Enrollment",back_populates="course")
+    time_slot=relationship("TimeSlot",back_populates="course",cascade="all, delete-orphan")
 
 
 
@@ -59,7 +59,7 @@ class Room(Base):
     room_name=Column(String(200),nullable=False)
     capacity=Column(Integer,nullable=False)
     Code=Column(String(50),nullable=False)
-    timetable=relationship("time_slots",back_populates="roomS",cascade="all, delete-orphan")
+    timetable=relationship("TimeSlot",back_populates="room",cascade="all, delete-orphan")
 
 
 
@@ -68,7 +68,7 @@ class TimeSlot(Base):
     __tablename__ ="time_slots"
 
     id=Column(Integer,primary_key=True)
-    course_id=Column(String(200),ForeignKey("courses.id"))
+    course_id=Column(Integer,ForeignKey("courses.id"))
     lecturer_id=Column(String(200),ForeignKey("users.id"))
     room_id=Column(Integer,ForeignKey("rooms.id"))
     Day=Column(String(20))
@@ -78,10 +78,12 @@ class TimeSlot(Base):
     Academic_yr=Column(String(20))
     created_by=Column(String(200))
     created_at=Column(TIMESTAMP,server_default=func.now())
-    updated_at=Column(DateTime,datetime(timezone.utcnow()))
-    course=relationship("course",back_populates="time_slots",cascade="all, delete-orphan")
-    user=relationship("user",back_populates="time_slots",cascade="all, delete-orphan")
-    room=relationship("rooms",back_populates="time_slots",cascade="all, delete-orphan")
+    updated_at=Column(DateTime(timezone=True),
+    default=lambda: datetime.now(timezone.utc),
+    onupdate=lambda: datetime.now(timezone.utc))
+    course=relationship("Course",back_populates="time_slot")
+    user=relationship("User",back_populates="timetable")
+    room=relationship("Room",back_populates="timetable")
         
 
 
@@ -96,5 +98,5 @@ class Notification(Base):
     message=Column(String(100),nullable=False)
     is_read=Column(Boolean,default=False)
     created_at=Column(TIMESTAMP,server_default=func.now())
-    user=relationship("user",back_populates="notifications",cascade="all, delete-orphan")
+    user=relationship("User",back_populates="notification")
 

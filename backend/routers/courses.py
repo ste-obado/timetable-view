@@ -22,7 +22,7 @@ def enroll_course(enroll:course,db:Session=Depends(get_db),user:User=Depends(get
     #check if user is already enrolled in the course
     existing_enrollment=db.query(Enrollment).filter(Enrollment.user_id==user.id,
                                                     Enrollment.course_id==existing_course.id).first()
-    if existing_enrollment:
+    if not existing_enrollment:
             raise HTTPException(status_code=400,detail="User is already enrolled in a course")
         
     course=Course(Code=enroll.course_code,name=enroll.course_name,Description=enroll.description)
@@ -32,33 +32,37 @@ def enroll_course(enroll:course,db:Session=Depends(get_db),user:User=Depends(get
     return {"message":"Course enrolled successfully"}
 
 #let user get courses they enrolled in
-@router.get("/my_courses/{user.id}")
+@router.get("/my_courses/{user_id}")
 def get_my_courses(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     enrolled_courses=db.query(Course).join(Enrollment).filter(Enrollment.user_id==user.id).all()
     
     return {"courses": enrolled_courses}
 
 #only can get all courses
-@router.get("/my_courses/{user.id}")
+@router.get("/all_courses/{user_id}")
 def get_my_courses(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
-    courses=db.query(Course).filter(Enrollment.user_id==user.id).all()
+    courses=db.query(Course).filter(Course.user_id==user.id).all()
     return {"courses available": courses}
 
 
 
 #only addmin can update a course
 @router.patch("/update_course/{course_id}")
-def update_course(course_id:str, course:CourseUpdate, user:User = Depends(get_current_user),
+def update_course(course_id:str, update:CourseUpdate, user:User = Depends(get_current_user),
                   db:Session = Depends(get_db)):
     course = db.query(Course).filter(Course.id == course_id).first()
     if not course:
         raise HTTPException(status_code=404,detail="Course not found")
-    elif user.role!="admin":
+    if user.role!="admin":
           raise HTTPException(status_code=403,detail="Not authorized to update")
-    else:
-     db.commit()
-     db.refresh(course)       
-     return {"message":"course updated","COURSE":course}
+    
+    course.Code=update.Code
+    course.name=update.name
+    course.Description=update.Description
+    
+    db.commit()
+    db.refresh(course)       
+    return {"message":"course updated","COURSE":course}
 
 #only admin can delete a course
 @router.delete("/delete_course/{course_id}")

@@ -4,7 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
-DATABASE_URL=os.get_dotenv("DATABASE_URL")
+DATABASE_URL=os.getenv("DATABASE_URL")
 
 
 #creating database engine

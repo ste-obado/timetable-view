@@ -1,14 +1,14 @@
-from jose import jwt ,JwtError
-from passlib import CryptContext
+from jose import jwt,JWTError
+from passlib.context import CryptContext
 from datetime import datetime,timedelta
 from fastapi import HTTPException,status
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-SECRET_KEY=os.get_dotenv("SECRET_KEY")
-ALGORITHM=os.get_dotenv("ALGORITHM")
-ACCESS_TOKEN_EXPIRE_MINUTES=int(os.get_dotenv("ACCSESS_TOKEN_EXPIRE_MINUTES"))
+SECRET_KEY=os.getenv("SECRET_KEY")
+ALGORITHM=os.getenv("ALGORITHM")
+ACCESS_TOKEN_EXPIRE_MINUTES=int(os.getenv("ACCSESS_TOKEN_EXPIRE_MINUTES"))
 
 
 
