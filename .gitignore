@@ -10,4 +10,4 @@ venv/
 
 #ignore files with certain extention
 *.pyc
-*.log
+*.log.env
