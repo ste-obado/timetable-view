@@ -5,7 +5,7 @@ from database import get_db
 from auth import verify_access_token,credentials_exception,is_token_blacklisted
 import models
 
-OAuth_Schema=OAuth2PasswordBearer('user/login')
+OAuth_Schema=OAuth2PasswordBearer('auth/login')
 
 def get_current_user(token:str=Depends(OAuth_Schema),
                      db:Session=Depends(get_db)):

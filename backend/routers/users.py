@@ -27,14 +27,36 @@ def get_profile(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
 def update_course( user2:updateprofile, user:User = Depends(get_current_user),
                   db:Session = Depends(get_db)):
     #get user
-    user = db.query(User).filter(User.id == user.id ).first()
-    if not user:
+    users= db.query(User).filter(User.id == user.id ).first()
+    if not users:
         raise HTTPException(status_code=404,detail="user not found")
-    user.name= user2.name
-    user.email=user2.email
+    
+    update_data=user2.model_dump(exclude_unset=True)
+    if "email" in update_data:
+         existing_email=db.query(User).filter(User.email==update_data["email"],User.id !=user.id).first()
+         if existing_email:
+                raise HTTPException(status_code=409,detail='Email exists try again')
+    for field,value in update_data.items():
+      setattr(users,field,value)
+
+    
+
+    #if users.email is not None :
+        #raise HTTPException(status_code=404,detail="email exists try again")
+    #user.name= user2.name
+    #user.email=user2.email
+    #ALT
+    #if user2.name is not None:
+    #user.name = user2.name
+    #if user2.email is not None:
+    #user.email = user2.email
     db.commit()
-    db.refresh(user)       
-    return {"message":"profile updated",'PROFILE':user}
+    db.refresh(users)       
+    return {"message":"profile updated",
+            "name":users.name,
+            "email":users.email,
+            "role":users.role,
+            "created_at":users.created_at}
 
 
 #accoutn log out

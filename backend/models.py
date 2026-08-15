@@ -1,7 +1,7 @@
 from database import Base
 import uuid
 from sqlalchemy.orm import relationship
-from sqlalchemy import String,Column,ForeignKey,Integer,DateTime,TIMESTAMP,func,Enum,Boolean
+from sqlalchemy import String,Column,ForeignKey,Integer,DateTime,TIMESTAMP,func,Enum,Boolean,Time
 from datetime import timezone,datetime
 
 
@@ -11,7 +11,7 @@ class User(Base):
 
      id=Column(String(200),primary_key=True,default=lambda:str(uuid.uuid4()))
      name=Column(String(200),nullable=False)
-     email=Column(String(200),nullable=False)
+     email=Column(String(200),nullable=False,unique=True)
      password=Column(String(200),nullable=False)
      role=Column(Enum("admin", "Student","lecturer", name="user_roles"),
                  default="Student",nullable=False)
@@ -67,20 +67,18 @@ class Room(Base):
 class TimeSlot(Base):
     __tablename__ ="time_slots"
 
-    id=Column(Integer,primary_key=True)
-    course_id=Column(Integer,ForeignKey("courses.id"))
-    lecturer_id=Column(String(200),ForeignKey("users.id"))
-    room_id=Column(Integer,ForeignKey("rooms.id"))
-    Day=Column(String(20))
-    start_time=Column(String(20))
-    End_time=Column(String(20))
-    Semester=Column(String(20))
-    Academic_yr=Column(String(20))
-    created_by=Column(String(200))
-    created_at=Column(TIMESTAMP,server_default=func.now())
-    updated_at=Column(DateTime(timezone=True),
-    default=lambda: datetime.now(timezone.utc),
-    onupdate=lambda: datetime.now(timezone.utc))
+    id=Column(Integer,primary_key=True,nullable=False)
+    course_id=Column(Integer,ForeignKey("courses.id"),nullable=False)
+    lecturer_id=Column(String(200),ForeignKey("users.id"),nullable=False)
+    room_id=Column(Integer,ForeignKey("rooms.id"),nullable=False)
+    Day=Column(String(20),nullable=False)
+    start_time=Column(Time,nullable=False)
+    End_time=Column(Time,nullable=False)
+    Semester=Column(String(20),nullable=False)
+    Academic_yr=Column(String(20),nullable=False)
+    created_by=Column(String(200),nullable=False)
+    created_at=Column(DateTime(timezone=True),server_default=func.now())
+    updated_at=Column(DateTime(timezone=True),server_default=func.now(),onupdate=func.now())
     course=relationship("Course",back_populates="time_slot")
     user=relationship("User",back_populates="timetable")
     room=relationship("Room",back_populates="timetable")

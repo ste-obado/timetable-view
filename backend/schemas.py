@@ -1,5 +1,6 @@
 from pydantic import BaseModel,EmailStr,field_validator,model_validator
 from  typing import Optional
+from datetime import time 
 
 
 class register(BaseModel):
@@ -31,7 +32,7 @@ class register(BaseModel):
 
 class updateprofile(BaseModel):
      name: Optional[str] = None
-     email:Optional[str] = None
+     email:Optional[EmailStr] = None
    
 
 class course(BaseModel):
@@ -39,12 +40,15 @@ class course(BaseModel):
      course_name:str
      description:str
 
+class enroll(BaseModel):
+     course_code:str
+    
 class CourseUpdate(BaseModel):
     Code: Optional[str] = None
     name: Optional[str] = None
     Description: Optional[str] = None
 
-class RoomS(BaseModel):
+class Rooms(BaseModel):
     room_name:str
     capacity:int
     room_code:str
@@ -52,27 +56,29 @@ class RoomS(BaseModel):
 class RoomUpdate(BaseModel):
      room_name: Optional[str] = None
      capacity: Optional[int] = None
-     room_code: Optional[int] = None
+     room_code: Optional[str] = None
 
 
 class timeslot(BaseModel):
      course_id:int
-     Room_Code:str
-     lecture_id:str
-     Day:str
-     start_time:str
-     End_time:str
+     room_id:int
+     lecturer_id:str
+     day:str
+     start_time:time
+     end_time:time
      Semester:str
      Academic_yr:str
      created_by:str
 
+
+
 class timeupdate(BaseModel):
      course_id:Optional[str] = None
-     Room_id:Optional[str] = None
-     lecture_id:Optional[str] = None
-     Day :Optional[str] = None
-     start_time : Optional[str] = None
-     End_time : Optional[str] = None
+     room_id:Optional[str] = None
+     lecturer_id:Optional[str] = None
+     day :Optional[str] = None
+     start_time : Optional[time] = None
+     end_time : Optional[time] = None
      Semester  :Optional[str] = None
      Academic_yr : Optional[str] = None
      created_by :  Optional[str] = None

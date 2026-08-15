@@ -28,24 +28,34 @@ def add_room(room:Rooms,db:Session=Depends(get_db),user:User=Depends(get_current
     return {"message":"Room added"}
 
 #let user get room that exist
-@router.get("/available_rooms/{user_id}")
+@router.get("/available_rooms")
 def get_rooms(user:User=Depends(get_current_user),db:Session=Depends(get_db)):
     existing_rooms=db.query(Room).all()
     return {"courses":existing_rooms }
 
 
 #only admin can update a course
-@router.patch("/update_room/{course_id}")
-def update_course(room_id:str, room2:RoomUpdate, user:User = Depends(get_current_user),
+@router.patch("/update_room")
+def update_Room(room_id:str, room2:RoomUpdate, user:User = Depends(get_current_user),
                   db:Session = Depends(get_db)):
     room = db.query(Room).filter(Room.id == room_id).first()
     if not room:
         raise HTTPException(status_code=404,detail="room not found")
     if user.role!="admin":
           raise HTTPException(status_code=403,detail="Not authorized to update")
-    room.room_name=room2.room_name
-    room.capacity=room2.capacity
-    room.room_code=room2.room_code
+
+    update_data=room2.model_dump(exclude_unset=True)
+    if "room_code" in update_data:
+        existing_room=db.query(Room).filter(Room.Code==update_data["room_code"],Room.id !=room_id).first()
+        if existing_room:
+                raise HTTPException(status_code=409,detail='room exists try again')
+    for field,value in update_data.items():
+        setattr(room,field,value)
+
     db.commit()
     db.refresh(room)       
-    return {"message":"room updated","ROOM":room}
+    return {"message":"room updated",
+            "name":room.room_name,
+            "capacity":room.capacity,
+            "code":room.Code}
+          
