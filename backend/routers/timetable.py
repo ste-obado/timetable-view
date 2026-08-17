@@ -9,7 +9,10 @@ from protection import get_current_user
 from schemas import timeslot, timeupdate
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import HTTPException, Depends, status, APIRouter
+from fastapi import HTTPException, Depends, status, APIRouter,Request,Response
+import hashlib
+import json
+from redis_client import redis_client
 
 
 router = APIRouter(prefix="/timetable", tags=["TimeSlots"])
@@ -59,7 +62,7 @@ def add_timeslots(time: timeslot, db: Session = Depends(get_db), user: User = De
 
 
 @router.get("/timetable/student/week")
-def get_student_weekly_timetable(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_student_weekly_timetable(request:Request,response:Response,user: User = Depends(get_current_user), db: Session = Depends(get_db)):
     if user.role != "Student":
         raise HTTPException(status_code=403, detail="Not authorized")
 
@@ -72,45 +75,94 @@ def get_student_weekly_timetable(user: User = Depends(get_current_user), db: Ses
     if not slots:
         raise HTTPException(status_code=404, detail="No timeslot found")
 
-    return {
-        "timeslots": [
+    payload= [
             {
                 "id": slot.id,
                 "Day": slot.Day,
-                "start_time": slot.start_time,
-                "End_time": slot.End_time,
+                "start_time": slot.start_time.isoformat(),
+                "End_time": slot.End_time.isoformat(),
                 "Semester": slot.Semester,
                 "Academic_yr": slot.Academic_yr,
                 "created_by": slot.created_by,
             }
             for slot in slots
         ]
-    }
+    
+    #fingerprint the response data(change payload to a json and sort it alphabetic then encode &
+    #  hash it to etag)
+    encode_byte=json.dumps(payload,sort_keys=True).encode()
+    etag=hashlib.md5(encode_byte).hexdigest()
 
+    if request.headers.get("if-non-match")==etag:
+        return Response(status_code=304)
+
+    response.headers["ETag"] = etag
+    response.headers["Cache-Control"] = "private, max-age=30"
+    return {"timeslots": payload}
+
+#@router.get("/timetable/lecturer/week")
+#def get_lecturer_weekly_timetable(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+ #   if user.role != "lecturer":
+  #      raise HTTPException(status_code=403, detail="Not authorized")
+
+   # slots = db.query(TimeSlot).filter(TimeSlot.lecturer_id == user.id).all()
+    #if not slots:
+     #   raise HTTPException(status_code=404, detail="No timeslot found")
+
+    #return {
+     #   "timeslots": [
+      #      {
+       #         "id": slot.id,
+        #        "Day": slot.Day,
+         #       "start_time": slot.start_time,
+          #      "End_time": slot.End_time,
+           #     "Semester": slot.Semester,
+            #    "Academic_yr": slot.Academic_yr,
+             #   "created_by": slot.created_by,
+            #}
+            #for slot in slots
+        #]
+    #}
 
 @router.get("/timetable/lecturer/week")
-def get_lecturer_weekly_timetable(user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def get_lecturer_weekly_timetable(
+    request: Request,
+    response: Response,
+    user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
     if user.role != "lecturer":
         raise HTTPException(status_code=403, detail="Not authorized")
 
+    cache_key = f"lecturer_timetable:{user.id}"
+
+    # 1. Check Redis first
+    cached = redis_client.get(cache_key)
+    if cached:
+        return {"timeslots": json.loads(cached), "source": "cache"}
+
+    # 2. Cache miss — hit the DB like normal
     slots = db.query(TimeSlot).filter(TimeSlot.lecturer_id == user.id).all()
     if not slots:
         raise HTTPException(status_code=404, detail="No timeslot found")
 
-    return {
-        "timeslots": [
-            {
-                "id": slot.id,
-                "Day": slot.Day,
-                "start_time": slot.start_time,
-                "End_time": slot.End_time,
-                "Semester": slot.Semester,
-                "Academic_yr": slot.Academic_yr,
-                "created_by": slot.created_by,
-            }
-            for slot in slots
-        ]
-    }
+    payload = [
+        {
+            "id": slot.id,
+            "Day": slot.Day,
+            "start_time": slot.start_time.isoformat(),
+            "End_time": slot.End_time.isoformat(),
+            "Semester": slot.Semester,
+            "Academic_yr": slot.Academic_yr,
+            "created_by": slot.created_by,
+        }
+        for slot in slots
+    ]
+
+    # 3. Write to Redis for next time, expire after 60 seconds
+    redis_client.set(cache_key, json.dumps(payload), ex=60)
+
+    return {"timeslots": payload, "source": "db"}
 
 
 @router.patch("/update_slot/{timeslot_id}")
