@@ -134,6 +134,7 @@ def get_lecturer_weekly_timetable(
     if user.role != "lecturer":
         raise HTTPException(status_code=403, detail="Not authorized")
 
+    #create redis key
     cache_key = f"lecturer_timetable:{user.id}"
 
     # 1. Check Redis first

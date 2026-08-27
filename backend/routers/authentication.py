@@ -4,7 +4,8 @@ from auth import hash_password,verify_password,create_access_token
 from schemas import register
 from sqlalchemy.orm import Session
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import  HTTPException,Depends,status
+from fastapi import  HTTPException,Depends,Request
+from redis_client import redis_client
 
 
 
@@ -37,16 +38,28 @@ def register_user(newuser:register,db:Session=(Depends(get_db))):
 
 #user--login
 @router.post("/login")
-def login_user(form_data:OAuth2PasswordRequestForm=Depends()
+def login_user(request:Request,form_data:OAuth2PasswordRequestForm=Depends()
                ,db:Session=(Depends(get_db))):
-    existing_user = db.query(User).filter(User.email == form_data.username).first()
 
-    #validate if user does exist
-    if not existing_user:
-        raise HTTPException(status_code=404,detail='USER DONT EXIST')
-    #verify password 
-    if not verify_password(form_data.password, existing_user.password):
-        raise HTTPException(status_code=404,detail='INVALID PASSWORD')
+    #create a key in redis 
+    rate_key=f"login_attemps:{form_data.username}"
+    attempts = redis_client.get(rate_key)
+    if attempts and int(attempts) >= 5:
+        raise HTTPException(
+            status_code=429,
+            detail="Too many login attempts. Try again in a minute."
+        )
+    existing_user = db.query(User).filter(User.email == form_data.username).first()
+  
+    if not existing_user or not verify_password(form_data.password, existing_user.password):
+    # Failed attempt — increment the counter
+        new_count = redis_client.incr(rate_key)
+        if new_count == 1:
+              redis_client.expire(rate_key, 60)  # only set TTL on the first failure,more than 5 failures in that ttl window "too many requests"
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+    
+    # Successful login — clear any failed attempt count
+    redis_client.delete(rate_key)
 
     #create access_token
     token_data=({"sub":str(existing_user.id)})

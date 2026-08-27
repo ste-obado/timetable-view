@@ -5,7 +5,7 @@ from sqlalchemy import String,Column,ForeignKey,Integer,DateTime,TIMESTAMP,func,
 from datetime import timezone,datetime
 
 
-
+#user model
 class User(Base):
      __tablename__ ="users"
 
@@ -28,6 +28,7 @@ class User(Base):
      #   "role IN ('admin', 'user')",
       #  name="check_user_role"
     #),)
+#enrrollment model
 class Enrollment(Base):
     __tablename__ ="enrollments"
 
@@ -37,7 +38,7 @@ class Enrollment(Base):
     course=relationship("Course",back_populates="Enrol")
     user=relationship("User",back_populates="Enrol")
     
-
+#Course model
 class Course(Base):
     __tablename__ ="courses"
 
@@ -51,7 +52,7 @@ class Course(Base):
 
 
 
-
+#room model
 class Room(Base):
     __tablename__ ="rooms"
 
@@ -63,7 +64,7 @@ class Room(Base):
 
 
 
-
+#Timeslot model
 class TimeSlot(Base):
     __tablename__ ="time_slots"
 
@@ -86,7 +87,7 @@ class TimeSlot(Base):
 
 
 
-
+#Notification model
 class Notification(Base):
     __tablename__ ="notifications"
 
